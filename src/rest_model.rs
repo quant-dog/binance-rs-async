@@ -2043,6 +2043,7 @@ pub mod string_or_u64 {
     }
 }
 
+#[allow(unused)]
 pub(crate) mod string_or_bool {
     use std::fmt;
 
