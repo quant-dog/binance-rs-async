@@ -5,6 +5,10 @@ use crate::general::*;
 use crate::market::*;
 use crate::userstream::*;
 
+// since the impl part used abs path, no need to import here
+#[cfg(feature = "futures_api")]
+use crate::futures::userstream::*;
+
 pub trait Binance: Sized {
     fn new(api_key: Option<String>, secret_key: Option<String>) -> Self {
         Self::new_with_config(api_key, secret_key, &Config::default())
@@ -66,6 +70,17 @@ impl Binance for UserStream {
         }
     }
 }
+
+#[cfg(feature = "futures_api")]
+impl Binance for crate::futures::userstream::FuturesUserStream {
+    fn new_with_config(api_key: Option<String>, secret_key: Option<String>, config: &Config) -> FuturesUserStream {
+        FuturesUserStream {
+            client: Client::new(api_key, secret_key, config.futures_rest_api_endpoint.clone(), config.timeout),
+            recv_window: config.recv_window,
+        }
+    }
+}
+
 
 #[cfg(feature = "futures_api")]
 impl Binance for crate::futures::general::FuturesGeneral {

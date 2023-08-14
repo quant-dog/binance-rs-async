@@ -2,6 +2,7 @@ target
 Cargo.lock
 precommit_venv
 
+.vscode
 *.fmt
 *.iml
 .idea

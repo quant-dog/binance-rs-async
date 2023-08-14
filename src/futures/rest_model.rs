@@ -3,8 +3,15 @@ use serde::{Deserialize, Serialize};
 use crate::rest_model::{string_or_bool, string_or_float, string_or_float_opt, string_or_u64};
 pub use crate::rest_model::{
     Asks, Bids, BookTickers, KlineSummaries, KlineSummary, OrderSide, OrderStatus, RateLimit, ServerTime, SymbolPrice,
-    SymbolStatus, Tickers, TimeInForce,
+    SymbolStatus, Tickers, TimeInForce, Success
 };
+
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FuturesUserDataStream {
+    pub listen_key: String,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

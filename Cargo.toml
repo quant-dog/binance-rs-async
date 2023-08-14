@@ -8,7 +8,7 @@ edition = "2021"
 description = "Async Rust Library for the Binance API"
 keywords = ["cryptocurrency", "trading", "binance"]
 documentation = "https://docs.rs/crate/binance-rs-async/"
-repository = "https://github.com/Igosuki/binance-rs-async"
+repository = "git@github.com:quant-dog/binance-rs-async.git"
 readme = "README.md"
 
 [lib]
@@ -41,6 +41,7 @@ lazy_static = "1.4"
 tokio-tungstenite = "0.18"
 tokio = { version = "1.28", features = ["full"] }
 boolinator = "2.4"
+dotenv = "0.15.0"
 
 [dev-dependencies]
 csv = "1.2"

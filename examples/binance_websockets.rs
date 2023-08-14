@@ -12,9 +12,14 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::RwLock;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio_tungstenite::tungstenite::Message;
+use dotenv;
+
 
 #[tokio::main]
 async fn main() {
+
+    dotenv::dotenv().ok();
+
     let (logger_tx, mut logger_rx) = tokio::sync::mpsc::unbounded_channel::<WebsocketEvent>();
     let (close_tx, mut close_rx) = tokio::sync::mpsc::unbounded_channel::<bool>();
     let wait_loop = tokio::spawn(async move {
@@ -26,22 +31,22 @@ async fn main() {
         }
     });
     // private api
-    //user_stream().await;
-    //user_stream_websocket().await;
+    user_stream().await;
+    user_stream_websocket().await;
     // public api
-    let streams: Vec<BoxFuture<'static, ()>> = vec![
-        Box::pin(market_websocket(logger_tx.clone())),
-        Box::pin(kline_websocket(logger_tx.clone())),
-        Box::pin(all_trades_websocket(logger_tx.clone())),
-        Box::pin(last_price(logger_tx.clone())),
-        Box::pin(book_ticker(logger_tx.clone())),
-        Box::pin(combined_orderbook(logger_tx.clone())),
-        Box::pin(custom_event_loop(logger_tx)),
-    ];
+    // let streams: Vec<BoxFuture<'static, ()>> = vec![
+    //     Box::pin(market_websocket(logger_tx.clone())),
+    //     Box::pin(kline_websocket(logger_tx.clone())),
+    //     Box::pin(all_trades_websocket(logger_tx.clone())),
+    //     Box::pin(last_price(logger_tx.clone())),
+    //     Box::pin(book_ticker(logger_tx.clone())),
+    //     Box::pin(combined_orderbook(logger_tx.clone())),
+    //     Box::pin(custom_event_loop(logger_tx)),
+    // ];
 
-    for stream in streams {
-        tokio::spawn(stream);
-    }
+    // for stream in streams {
+    //     tokio::spawn(stream);
+    // }
 
     select! {
         _ = wait_loop => { println!("Finished!") }
@@ -55,8 +60,11 @@ async fn main() {
 
 #[allow(dead_code)]
 async fn user_stream() {
-    let api_key_user = Some("YOUR_API_KEY".into());
-    let user_stream: UserStream = Binance::new(api_key_user.clone(), None);
+
+    let api_key = std::env::var("BINANCE_API_KEY").ok();
+    let secret_key = std::env::var("BINANCE_API_SECRET_KEY").ok();
+    
+    let user_stream: UserStream = Binance::new(api_key.clone(), secret_key);
 
     if let Ok(answer) = user_stream.start().await {
         println!("Data Stream Started ...");
@@ -79,8 +87,11 @@ async fn user_stream() {
 #[allow(dead_code)]
 async fn user_stream_websocket() {
     let keep_running = AtomicBool::new(true); // Used to control the event loop
-    let api_key_user = Some("YOUR_KEY".into());
-    let user_stream: UserStream = Binance::new(api_key_user, None);
+
+    let api_key = std::env::var("BINANCE_API_KEY").ok();
+    let secret_key = std::env::var("BINANCE_API_SECRET_KEY").ok();
+
+    let user_stream: UserStream = Binance::new(api_key, secret_key);
 
     if let Ok(answer) = user_stream.start().await {
         let listen_key = answer.listen_key;
