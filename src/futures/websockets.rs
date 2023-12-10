@@ -150,10 +150,8 @@ impl<'a, WE: serde::de::DeserializeOwned> FuturesWebSockets<'a, WE> {
     pub async fn event_loop(&mut self, running: &AtomicBool) -> Result<()> {
         while running.load(Ordering::Relaxed) {
             if let Some((ref mut socket, _)) = self.socket {
-                // TODO: return error instead of panic?
-                let message = socket.next().await.unwrap()?;
 
-                match message {
+                match socket.next().await? {
                     Message::Text(msg) => {
                         if msg.is_empty() {
                             return Ok(());
