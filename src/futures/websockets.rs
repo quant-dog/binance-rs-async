@@ -150,26 +150,32 @@ impl<'a, WE: serde::de::DeserializeOwned> FuturesWebSockets<'a, WE> {
     pub async fn event_loop(&mut self, running: &AtomicBool) -> Result<()> {
         while running.load(Ordering::Relaxed) {
             if let Some((ref mut socket, _)) = self.socket {
-
-                match socket.next().await? {
-                    Message::Text(msg) => {
-                        if msg.is_empty() {
-                            return Ok(());
+                
+                if let Some(Ok(message)) = socket.next().await {
+                    match message {
+                        Message::Text(msg) => {
+                            if msg.is_empty() {
+                                return Ok(());
+                            }
+                            match from_str(msg.as_str()) {
+                                Ok(event) => {
+                                    (self.handler)(event)?;
+                                }
+                                Err(e) => {
+                                    return Err(Error::Msg(format!("failed to serde {e:?}")));
+                                }
+                            }
                         }
-                        match from_str(msg.as_str()) {
-                            Ok(event) => {
-                                (self.handler)(event)?;
-                            }
-                            Err(e) => {
-                                return Err(Error::Msg(format!("failed to serde {e:?}")));
-                            }
+                        Message::Ping(_) | Message::Pong(_) | Message::Binary(_) | Message::Frame(_) => {}
+                        Message::Close(e) => {
+                            return Err(Error::Msg(format!("Disconnected {e:?}")));
                         }
                     }
-                    Message::Ping(_) | Message::Pong(_) | Message::Binary(_) | Message::Frame(_) => {}
-                    Message::Close(e) => {
-                        return Err(Error::Msg(format!("Disconnected {e:?}")));
-                    }
+                } else {
+                    return Err(Error::Msg(format!("Disconnected")));
                 }
+                
+
             }
         }
         Ok(())

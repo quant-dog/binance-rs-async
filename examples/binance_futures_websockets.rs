@@ -56,9 +56,8 @@ async fn main() {
     select! {
         _ = wait_loop => { println!("Finished!") }
         _ = tokio::signal::ctrl_c() => {
-            println!("Closing websocket stream...");
+            println!("\nClosing websocket stream...");
             close_tx.send(true).unwrap();
-            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     }
 }
@@ -153,7 +152,11 @@ async fn market_websocket(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
     let partial_order_book = partial_book_depth_stream("dydxusdt", 5, 100);
     let mut web_socket: FuturesWebSockets<'_, FuturesWebsocketEvent> =
         FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
-            logger_tx.send(event.clone()).unwrap();
+            
+
+            if let Err(e) = logger_tx.send(event.clone()) {
+                println!("Failed to send more messages, channel shutdown {e:?}");
+            }
             match event {
                 FuturesWebsocketEvent::Trade(trade) => {
                     println!("Symbol: {}, price: {}, qty: {}", 
