@@ -3,7 +3,7 @@
 use crate::rest_model::{string_or_bool, string_or_float, string_or_float_opt, string_or_u64};
 
 pub use crate::futures::rest_model::{
-    Asks, Bids, OrderBook, OrderSide, OrderStatus, OrderType, PositionSide, Success, TimeInForce, WorkingType,
+    Asks, Bids, OrderBook, DepthOrderBook, OrderSide, OrderStatus, OrderType, PositionSide, Success, TimeInForce, WorkingType,
 };
 
 pub use crate::ws_model::{
@@ -18,6 +18,7 @@ pub use crate::ws_model::{
 pub enum FuturesWebsocketEventUntag {
     FuturesWebsocketEvent(FuturesWebsocketEvent),
     Orderbook(Box<OrderBook>),
+    DepthOrderbook(Box<DepthOrderBook>),
     BookTicker(Box<BookTickerEvent>),
 }
 

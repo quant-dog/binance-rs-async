@@ -16,9 +16,9 @@ name = "binance"
 path = "src/lib.rs"
 
 [features]
+default = ["futures_api", "rustls-tls"]
 rustls-tls = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls"]
 native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
-default = ["native-tls"]
 futures_api = []
 margin_api = []
 savings_api = []

@@ -106,7 +106,7 @@ impl<'a, WE: serde::de::DeserializeOwned> FuturesWebSockets<'a, WE> {
     /// Connect to multiple websocket endpoints
     /// N.B: WE has to be CombinedStreamEvent
     pub async fn connect_multiple(&mut self, endpoints: Vec<String>) -> Result<()> {
-        let mut url = Url::parse(&self.conf.ws_endpoint)?;
+        let mut url = Url::parse(&self.conf.futures_ws_endpoint)?;
         url.path_segments_mut()
             .map_err(|_| Error::UrlParserError(url::ParseError::RelativeUrlWithoutBase))?
             .push(STREAM_ENDPOINT);

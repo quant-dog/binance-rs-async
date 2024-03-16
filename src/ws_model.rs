@@ -268,7 +268,7 @@ pub struct BookTickerEvent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CombinedStreamEvent<T> {
-    stream: String,
+    pub stream: String,
     pub data: T,
 }
 
@@ -277,7 +277,7 @@ pub struct CombinedStreamEvent<T> {
 #[serde(untagged)]
 pub enum WebsocketEventUntag {
     WebsocketEvent(WebsocketEvent),
-    Orderbook(Box<OrderBook>),
+    OrderBook(Box<OrderBook>),
     BookTicker(Box<BookTickerEvent>),
 }
 

@@ -149,7 +149,7 @@ async fn user_stream_websocket() {
 async fn market_websocket(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
     let keep_running = AtomicBool::new(true); // Used to control the event loop
     // let agg_trade: String = agg_trade_stream("dydxusdt");
-    let partial_order_book = partial_book_depth_stream("dydxusdt", 5, 100);
+    let partial_order_book = partial_book_depth_stream("btcusdt", 5, 100);
     let mut web_socket: FuturesWebSockets<'_, FuturesWebsocketEvent> =
         FuturesWebSockets::new(|event: FuturesWebsocketEvent| {
             
@@ -309,6 +309,7 @@ async fn combined_orderbook(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
         .collect();
     let mut web_socket: FuturesWebSockets<'_, CombinedStreamEvent<_>> =
         FuturesWebSockets::new(|event: CombinedStreamEvent<FuturesWebsocketEventUntag>| {
+
             if let FuturesWebsocketEventUntag::FuturesWebsocketEvent(we) = &event.data {
                 logger_tx.send(we.clone()).unwrap();
             }

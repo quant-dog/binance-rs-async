@@ -31,22 +31,22 @@ async fn main() {
         }
     });
     // private api
-    user_stream().await;
-    user_stream_websocket().await;
+    // user_stream().await;
+    // user_stream_websocket().await;
     // public api
-    // let streams: Vec<BoxFuture<'static, ()>> = vec![
+    let streams: Vec<BoxFuture<'static, ()>> = vec![
     //     Box::pin(market_websocket(logger_tx.clone())),
     //     Box::pin(kline_websocket(logger_tx.clone())),
     //     Box::pin(all_trades_websocket(logger_tx.clone())),
     //     Box::pin(last_price(logger_tx.clone())),
     //     Box::pin(book_ticker(logger_tx.clone())),
-    //     Box::pin(combined_orderbook(logger_tx.clone())),
+         Box::pin(combined_orderbook(logger_tx.clone())),
     //     Box::pin(custom_event_loop(logger_tx)),
-    // ];
+    ];
 
-    // for stream in streams {
-    //     tokio::spawn(stream);
-    // }
+    for stream in streams {
+        tokio::spawn(stream);
+    }
 
     select! {
         _ = wait_loop => { println!("Finished!") }
@@ -122,12 +122,12 @@ async fn user_stream_websocket() {
 #[allow(dead_code)]
 async fn market_websocket(logger_tx: UnboundedSender<WebsocketEvent>) {
     let keep_running = AtomicBool::new(true); // Used to control the event loop
-    let agg_trade: String = agg_trade_stream("ethbtc");
+    let agg_trade: String = agg_trade_stream("btcusdt");
     let mut web_socket: WebSockets<'_, WebsocketEvent> = WebSockets::new(|event: WebsocketEvent| {
-        logger_tx.send(event.clone()).unwrap();
+        // logger_tx.send(event.clone()).unwrap();
         match event {
             WebsocketEvent::Trade(trade) => {
-                println!("Symbol: {}, price: {}, qty: {}", trade.symbol, trade.price, trade.qty);
+                // println!("Symbol: {}, price: {}, qty: {}", trade.symbol, trade.price, trade.qty);
             }
             WebsocketEvent::DepthOrderBook(depth_order_book) => {
                 println!(
@@ -264,7 +264,7 @@ async fn combined_orderbook(logger_tx: UnboundedSender<WebsocketEvent>) {
     let keep_running = AtomicBool::new(true);
     let streams: Vec<String> = vec!["btcusdt", "ethusdt"]
         .into_iter()
-        .map(|symbol| partial_book_depth_stream(symbol, 5, 1000))
+        .map(|symbol| partial_book_depth_stream(symbol, 5, 100))
         .collect();
     let mut web_socket: WebSockets<'_, CombinedStreamEvent<_>> =
         WebSockets::new(|event: CombinedStreamEvent<WebsocketEventUntag>| {
