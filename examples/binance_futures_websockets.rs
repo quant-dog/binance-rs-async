@@ -15,11 +15,16 @@ use std::sync::RwLock;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio_tungstenite::tungstenite::Message;
 
+use tracing::{debug, info};
+use tracing_subscriber;
+
 use dotenv;
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
+
+    tracing_subscriber::fmt::init();
 
     let (logger_tx, mut logger_rx) = tokio::sync::mpsc::unbounded_channel::<FuturesWebsocketEvent>();
     let (close_tx, mut close_rx) = tokio::sync::mpsc::unbounded_channel::<bool>();
@@ -40,12 +45,12 @@ async fn main() {
 
     // public api
     let streams: Vec<BoxFuture<'static, ()>> = vec![
-        Box::pin(market_websocket(logger_tx.clone())),
+        // Box::pin(market_websocket(logger_tx.clone())),
         // Box::pin(kline_websocket(logger_tx.clone())),
         // Box::pin(all_trades_websocket(logger_tx.clone())),
         // Box::pin(last_price(logger_tx.clone())),
         // Box::pin(book_ticker(logger_tx.clone())),
-        // Box::pin(combined_orderbook(logger_tx.clone())),
+        Box::pin(combined_orderbook(logger_tx.clone())),
         // Box::pin(custom_event_loop(logger_tx)),
     ];
 
@@ -302,21 +307,24 @@ async fn book_ticker(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
 
 #[allow(dead_code)]
 async fn combined_orderbook(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
+    
     let keep_running = AtomicBool::new(true);
     let streams: Vec<String> = vec!["btcusdt", "ethusdt"]
         .into_iter()
-        .map(|symbol| partial_book_depth_stream(symbol, 5, 1000))
+        .map(|symbol| partial_book_depth_stream(symbol, 5, 500))
         .collect();
-    let mut web_socket: FuturesWebSockets<'_, CombinedStreamEvent<_>> =
-        FuturesWebSockets::new(|event: CombinedStreamEvent<FuturesWebsocketEventUntag>| {
 
-            if let FuturesWebsocketEventUntag::FuturesWebsocketEvent(we) = &event.data {
-                logger_tx.send(we.clone()).unwrap();
-            }
+        let mut web_socket =
+        FuturesWebSockets::new(|event: CombinedStreamEvent<FuturesWebsocketEvent>| {
             let data = event.data;
-            if let FuturesWebsocketEventUntag::Orderbook(orderbook) = data {
-                println!("{orderbook:?}")
+            let symbol: String = event.stream.split_once('@').unwrap().0.to_string().to_uppercase();
+            if let FuturesWebsocketEvent::DepthOrderBook(orderbook) = data {
+                let (bid1, ask1) = (orderbook.bids[0].price, orderbook.asks[0].price);
+                info!("orderbook:{symbol} {bid1}/{ask1}");
+            } else {
+                debug!("unknown event with symbol: -- {symbol} --");
             }
+
             Ok(())
         });
 
@@ -332,10 +340,11 @@ async fn combined_orderbook(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
 async fn custom_event_loop(logger_tx: UnboundedSender<FuturesWebsocketEvent>) {
     let streams: Vec<String> = vec!["btcusdt", "ethusdt"]
         .into_iter()
-        .map(|symbol| partial_book_depth_stream(symbol, 5, 1000))
+        .map(|symbol| partial_book_depth_stream(symbol, 5, 100))
         .collect();
     let mut web_socket: FuturesWebSockets<'_, CombinedStreamEvent<_>> =
         FuturesWebSockets::new(|event: CombinedStreamEvent<FuturesWebsocketEventUntag>| {
+            debug!("event: {event:?}");
             if let FuturesWebsocketEventUntag::FuturesWebsocketEvent(we) = &event.data {
                 logger_tx.send(we.clone()).unwrap();
             }

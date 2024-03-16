@@ -3,12 +3,12 @@
 use crate::rest_model::{string_or_bool, string_or_float, string_or_float_opt, string_or_u64};
 
 pub use crate::futures::rest_model::{
-    Asks, Bids, OrderBook, DepthOrderBook, OrderSide, OrderStatus, OrderType, PositionSide, Success, TimeInForce, WorkingType,
+    Asks, Bids, OrderBook, OrderSide, OrderStatus, OrderType, PositionSide, Success, TimeInForce, WorkingType,
 };
 
 pub use crate::ws_model::{
     AccountPositionUpdate, BalanceUpdate, BookTickerEvent, CombinedStreamEvent, DayTickerEvent,
-    DepthOrderBookEvent, EventBalance, Kline, KlineEvent, MiniDayTickerEvent, OrderListTransaction, OrderListUpdate,
+    EventBalance, Kline, KlineEvent, MiniDayTickerEvent, OrderListTransaction, OrderListUpdate,
     OrderUpdate, QueryResult, TradeEvent, TradesEvent, WebsocketEvent, WebsocketEventUntag,
 };
 
@@ -18,8 +18,29 @@ pub use crate::ws_model::{
 pub enum FuturesWebsocketEventUntag {
     FuturesWebsocketEvent(FuturesWebsocketEvent),
     Orderbook(Box<OrderBook>),
-    DepthOrderbook(Box<DepthOrderBook>),
+    // DepthOrderbook(Box<FutureDepthOrderBookEvent>),
     BookTicker(Box<BookTickerEvent>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FutureDepthOrderBookEvent {
+    #[serde(rename = "E")]
+    pub event_time: u64,
+    #[serde(rename = "T")]
+    pub transaction_time: u64,
+    #[serde(rename = "s")]
+    pub symbol: String,
+    #[serde(rename = "U")]
+    pub first_update_id: u64,
+    #[serde(rename = "u")]
+    pub final_update_id: u64,
+    #[serde(rename = "pu")]
+    pub final_update_id_last_stream: u64,
+    #[serde(rename = "b")]
+    pub bids: Vec<Bids>,
+    #[serde(rename = "a")]
+    pub asks: Vec<Asks>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,7 +63,7 @@ pub enum FuturesWebsocketEvent {
     DayMiniTicker(Box<MiniDayTickerEvent>),
     
     #[serde(alias = "depthUpdate")]
-    DepthOrderBook(Box<DepthOrderBookEvent>),
+    DepthOrderBook(Box<FutureDepthOrderBookEvent>),
     
     #[serde(alias = "outboundAccountPosition")]
     AccountPositionUpdate(Box<AccountPositionUpdate>),

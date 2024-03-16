@@ -45,7 +45,7 @@ pub fn mini_ticker_stream(symbol: &str) -> String { format!("{symbol}@miniTicker
 ///
 /// * `symbol`: the market symbol
 /// * `levels`: 5, 10 or 20
-/// * `update_speed`: 1000 or 100
+/// * `update_speed`: spot： 100ms, 1000ms, futures: 250ms, 500ms or 100ms
 pub fn partial_book_depth_stream(symbol: &str, levels: u16, update_speed: u16) -> String {
     format!("{symbol}@depth{levels}@{update_speed}ms")
 }

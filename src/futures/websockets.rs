@@ -9,6 +9,8 @@ use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::{connect_async, MaybeTlsStream};
 use url::Url;
 
+use tracing::debug;
+
 use crate::config::Config;
 use crate::errors::*;
 
@@ -124,6 +126,7 @@ impl<'a, WE: serde::de::DeserializeOwned> FuturesWebSockets<'a, WE> {
     }
 
     async fn handle_connect(&mut self, url: Url) -> Result<()> {
+        debug!("{url}");
         match connect_async(url).await {
             Ok(answer) => {
                 self.socket = Some(answer);
@@ -152,6 +155,7 @@ impl<'a, WE: serde::de::DeserializeOwned> FuturesWebSockets<'a, WE> {
             if let Some((ref mut socket, _)) = self.socket {
                 
                 if let Some(Ok(message)) = socket.next().await {
+                    debug!("ws msg received: {message:?}");
                     match message {
                         Message::Text(msg) => {
                             if msg.is_empty() {
